@@ -103,10 +103,12 @@ def accumulate_economy_data(direc):
         acc_helper(direc, file, "income", tables_income)
         acc_helper(direc, file, "expenses", tables_expenses)
         acc_helper(direc, file, "balance", tables_balance)
-    acc_table_helper(direc, tables_income)
+    acc_table_helper(direc, tables_income, "income")
+    acc_table_helper(direc, tables_balance, "balance")
+    acc_table_helper(direc, tables_expenses, "expenses")
 
 
-def acc_table_helper(direc, table):
+def acc_table_helper(direc, table, keyword):
     for key, value in table.items():
         list_table = []
         row_id_dict = {"time": 0}
@@ -120,7 +122,7 @@ def acc_table_helper(direc, table):
                     row_id_dict[empire] = row_idx
                     row_idx += 1
                 curr.insert(row_id_dict[empire], emp_value)
-        f_out = open(direc + key + "_acc.csv", "w")
+        f_out = open(direc + "table_" + keyword + "_" + key + ".csv", "w")
         for key2 in row_id_dict.keys():
             f_out.write(key2 + " ")
         f_out.write("\n")
@@ -146,6 +148,7 @@ def acc_helper(direc, file, keyword, table_dict):
                 table_dict[key][time] = dict()
             table_dict[key][time][empire_id] = value
 
-# process_all_empire_data("workspace_mppamperexpansiondirectiveorganisation_-1362655182/saves/")
+
+process_all_empire_data("workspace_mppamperexpansiondirectiveorganisation_-1362655182/saves/")
 process_all_economy_data("workspace_mppamperexpansiondirectiveorganisation_-1362655182/empire_data/")
 accumulate_economy_data("workspace_mppamperexpansiondirectiveorganisation_-1362655182/economy_data/")
