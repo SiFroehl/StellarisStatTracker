@@ -1,0 +1,1 @@
+save_game_path = "C:/Users/Simon/Documents/Paradox Interactive/Stellaris/save games/"
