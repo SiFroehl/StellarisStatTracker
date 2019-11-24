@@ -2,6 +2,7 @@ import logging
 import matplotlib.pyplot as plt
 import os
 import EconomyExtractor
+import DirectoryManager
 
 
 AVAILABLE_SUPERFICIAL_KEYS = ["military_power", "economy_power", "victory_rank", "victory_score", "tech_power",
@@ -86,17 +87,10 @@ def track_production_stats(compound_dict, keys, empires):
                                     ret[resource_key][country["name"]][time] = value
                 except:
                     logging.info("Unknown error while processing empire " + str(country["name"]))
-
-
     return ret
 
 
 def plot_superficial_stats(stat_dict):
-    if not os.path.exists("plots/"):
-        try:
-            os.mkdir("plots/")
-        except OSError:
-            logging.warn("Error while attempting to create plot directory!")
     for key, sub_dict in stat_dict.items():
         logging.info("Plotting " + key)
         plt.clf()
@@ -111,4 +105,4 @@ def plot_superficial_stats(stat_dict):
                 value_data.append(value)
             plt.plot(time_data, value_data, label="Empire "+empire_id)
         plt.legend()
-        plt.savefig("plots/"+key+".png")
+        plt.savefig(DirectoryManager.PLOTS_DIRECTORY + key+".png")

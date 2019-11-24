@@ -39,8 +39,9 @@ def create_dict_from_file(file_name, skipped_top_level_keys=[]):
                 val = line.split("=")[1].strip()
                 nest[-1][key] = val
         except:
-            print(nest)
-            print(line)
+            logging.warn("Error while parsing save file!")
+            logging.warn(nest)
+            logging.warn(line)
     file.close()
     for skipped_key in skipped_top_level_keys:
         if skipped_key in root.keys():
@@ -74,14 +75,20 @@ def create_save_over_time_dict(save_name):
     logging.info("create_save_over_time_dict")
     ret = dict()
     files = [f for f in os.listdir(json_folder) if f.endswith(".json")]
+    progress_shown = 0
+    print("Processing save games [", end="")
     for i, file in enumerate(files):
         logging.info("Processing files: %i/%i (%.1f)" % (i, len(files), float(i)/len(files)*100))
+        if progress_shown < float(i)/len(files)*10:
+            progress_shown += 1
+            print("#", end="")
         date = file.split("_")[1].replace(".json", "").split(".")
         time = float(date[0]) + (float(date[1])-1) / 12 + (float(date[2])-1) / 360
         fin = open(json_folder + file)
         ret[time] = json.load(fin)
         fin.close()
     logging.info("Processed all files!")
+    print("]")
     return ret
 
 
