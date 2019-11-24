@@ -1,5 +1,6 @@
 import os
 import json
+import logging
 
 USUALLY_SKIPPED_KEYS = ['species', 'half_species', 'last_created_species', 'nebula', 'pop', 'last_created_pop',
                         'galactic_object', 'starbases', 'planets', 'alliance', 'truce', 'trade_deal',
@@ -20,6 +21,7 @@ USUALLY_SKIPPED_KEYS = ['species', 'half_species', 'last_created_species', 'nebu
 
 
 def create_dict_from_file(file_name, skipped_top_level_keys=[]):
+    logging.info("create_dict_from_file")
     file = open(file_name, "r")
     root = dict()
     nest = [root]
@@ -47,27 +49,51 @@ def create_dict_from_file(file_name, skipped_top_level_keys=[]):
 
 
 def create_json_from_file(file, out_file, skipped_top_level_keys=[]):
+    logging.info("create_json_from_file")
     root = create_dict_from_file(file, skipped_top_level_keys)
+    dir_name = "/".join(out_file.split("/")[:-1]) + "/"
+    if not os.path.exists(dir_name):
+        os.mkdir(dir_name)
     f_out = open(out_file, "w")
     json.dump(root, f_out, indent=2)
     f_out.close()
 
 
-def convert_all_saves(src, out):
+def convert_all_saves(src, out, skipped_top_level_keys = USUALLY_SKIPPED_KEYS):
+    logging.info("convert_all_saves")
     files = os.listdir(src)
     if not os.path.exists(out):
         os.mkdir(out)
     for file in files:
         out_file = file.replace(src, out).replace(".sav", ".json")
-        create_json_from_file(src + file, out + out_file, USUALLY_SKIPPED_KEYS)
+        create_json_from_file(src + file, out + out_file, skipped_top_level_keys)
 
 
-def create_save_over_time_dict(json_folder):
+def create_save_over_time_dict(save_name):
+    json_folder = "workspace_" + save_name + "/dicts/"
+    logging.info("create_save_over_time_dict")
     ret = dict()
-    for file in os.listdir(json_folder):
-        if file.endswith(".json"):
-            date = file.split("_")[1].replace(".json", "").split(".")
-            time = float(date[0]) + (float(date[1])-1) / 12 + (float(date[2])-1) / 360
-            ret[time] = create_dict_from_file(json_folder + file)["{"]
+    files = [f for f in os.listdir(json_folder) if f.endswith(".json")]
+    for i, file in enumerate(files):
+        logging.info("Processing files: %i/%i (%.1f)" % (i, len(files), float(i)/len(files)*100))
+        date = file.split("_")[1].replace(".json", "").split(".")
+        time = float(date[0]) + (float(date[1])-1) / 12 + (float(date[2])-1) / 360
+        fin = open(json_folder + file)
+        ret[time] = json.load(fin)
+        fin.close()
+    logging.info("Processed all files!")
     return ret
+
+
+def compound_data_over_time(game_save_name, file_out="compound_dict.json"):
+    logging.info("compound_data_over_time")
+    data = create_save_over_time_dict("workspace_"+game_save_name+"/dicts/")
+    f_out = open("workspace_"+game_save_name+"/"+file_out, "w")
+    logging.info("Dumping into file, may take quite some time...")
+    json.dump(data, f_out, indent=2)
+    logging.info("Done writing to file!")
+    f_out.close()
+
+
+
 
