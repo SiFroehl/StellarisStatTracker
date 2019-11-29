@@ -1,9 +1,11 @@
 import os
 import json
 import logging
+import DirectoryManager
 
 USUALLY_SKIPPED_KEYS = ['species', 'half_species', 'last_created_species', 'nebula', 'pop', 'last_created_pop',
-                        'galactic_object', 'starbases', 'planets', 'alliance', 'truce', 'trade_deal',
+                        # "galactic_object",
+                        'starbases', 'planets', 'alliance', 'truce', 'trade_deal',
                         'last_created_country', 'last_refugee_country', 'last_created_system', 'leaders',
                         'saved_leaders', 'ships', 'fleet', 'fleet_template', 'last_created_fleet',
                         'last_created_ship', 'last_created_leader', 'last_created_army',
@@ -25,10 +27,14 @@ def create_dict_from_file(file_name, skipped_top_level_keys=[]):
     file = open(file_name, "r")
     root = dict()
     nest = [root]
+    unnamed = 0
     for line in file:
         try:
             if "{" in line:
                 key = line.split("=")[0].strip()
+                if "=" not in line:
+                    key = "unnamed_key%i" % unnamed
+                    unnamed += 1
                 nd = dict()
                 nest[-1][key] = nd
                 nest.append(nd)
@@ -45,7 +51,10 @@ def create_dict_from_file(file_name, skipped_top_level_keys=[]):
     file.close()
     for skipped_key in skipped_top_level_keys:
         if skipped_key in root.keys():
-            root[skipped_key] = "Skipped"
+            skipped = 0
+            if type(root[skipped_key]) == dict:
+                skipped = len(root[skipped_key].keys())
+            root[skipped_key] = "Skipped %i entries" % skipped
     return root
 
 
@@ -60,7 +69,7 @@ def create_json_from_file(file, out_file, skipped_top_level_keys=[]):
     f_out.close()
 
 
-def convert_all_saves(src, out, skipped_top_level_keys = USUALLY_SKIPPED_KEYS):
+def convert_all_saves(src = DirectoryManager.SAVES_DIRECTORY, out = DirectoryManager.JSON_DIRECTORY, skipped_top_level_keys = USUALLY_SKIPPED_KEYS):
     logging.info("convert_all_saves")
     files = os.listdir(src)
     if not os.path.exists(out):
